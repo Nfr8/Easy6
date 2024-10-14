@@ -1,0 +1,179 @@
+import React, { useState, useEffect } from 'react';
+import { Container, Card, Button, Form, Row, Col, Alert, Tabs, Tab } from 'react-bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import Plot from 'react-plotly.js';
+import './App.css';
+
+function App() {
+  const [financialData, setFinancialData] = useState(null);
+  const [modelId, setModelId] = useState(null);
+  const [revenue, setRevenue] = useState(35000);
+  const [expenses, setExpenses] = useState(15000);
+  const [month, setMonth] = useState(5);
+  const [prediction, setPrediction] = useState(null);
+  const [policies, setPolicies] = useState("Data privacy, Cybersecurity");
+  const [complianceStatus, setComplianceStatus] = useState(null);
+  const [workflowSuggestion, setWorkflowSuggestion] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // Fetching dummy financial data (mock data for now)
+    fetch('/api/financial-data')
+      .then((res) => res.json())
+      .then((data) => setFinancialData(data))
+      .catch((error) => setError('Error fetching financial data'));
+  }, []);
+
+  const handleTrainModel = () => {
+    // Mock train model function
+    const data = financialData;
+    fetch('/api/train-model', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data }),
+    })
+      .then((res) => res.json())
+      .then((data) => setModelId(data.modelId))
+      .catch(() => setError('Error training model'));
+  };
+
+  const handlePrediction = () => {
+    // Mock predict profit function
+    if (!modelId) {
+      setError('Please train the model first');
+      return;
+    }
+    fetch('/api/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ modelId, revenue, expenses, month }),
+    })
+      .then((res) => res.json())
+      .then((data) => setPrediction(data.prediction))
+      .catch(() => setError('Error predicting profit'));
+  };
+
+  const handleCheckCompliance = () => {
+    // Mock compliance check function
+    const companyPolicies = policies.split(',').map((policy) => policy.trim());
+    // Mock response for demonstration
+    setComplianceStatus(companyPolicies.includes('Data privacy') ? 'Fully Compliant' : 'Missing Compliance: Data privacy');
+  };
+
+  const handleWorkflowOptimization = () => {
+    // Mock workflow optimization suggestion
+    setWorkflowSuggestion('Optimize process A and invest in operational assets B');
+  };
+
+  return (
+    <Container fluid className="app-container">
+      <h1 className="mt-4 text-center">AI-Driven SME Platform</h1>
+      <p className="text-center">Strategic Development, Operational Management, and Compliance Tracking for SMEs</p>
+      {error && <Alert variant="danger">{error}</Alert>}
+
+      <Tabs defaultActiveKey="financialData" id="main-tabs" className="my-4">
+        <Tab eventKey="financialData" title="Financial Data">
+          {financialData && (
+            <Card className="my-4">
+              <Card.Body>
+                <Card.Title>Financial Data Overview</Card.Title>
+                <Plot
+                  data={[
+                    {
+                      x: financialData.dates,
+                      y: financialData.revenue,
+                      type: 'scatter',
+                      mode: 'lines+markers',
+                      name: 'Revenue',
+                    },
+                    {
+                      x: financialData.dates,
+                      y: financialData.expenses,
+                      type: 'scatter',
+                      mode: 'lines+markers',
+                      name: 'Expenses',
+                    },
+                  ]}
+                  layout={{
+                    title: 'Revenue vs Expenses',
+                    xaxis: { title: 'Date' },
+                    yaxis: { title: 'Amount' },
+                    paper_bgcolor: '#f8f9fa',
+                    plot_bgcolor: '#f8f9fa',
+                  }}
+                />
+                <Button variant="primary" onClick={handleTrainModel} className="mt-3">
+                  Train Model
+                </Button>
+              </Card.Body>
+            </Card>
+          )}
+        </Tab>
+
+        <Tab eventKey="scenarioPlanning" title="Scenario Planning">
+          <Card className="my-4">
+            <Card.Body>
+              <Card.Title>Scenario Planning</Card.Title>
+              <Form>
+                <Row>
+                  <Col>
+                    <Form.Group>
+                      <Form.Label>Revenue</Form.Label>
+                      <Form.Control type="number" value={revenue} onChange={(e) => setRevenue(e.target.value)} />
+                    </Form.Group>
+                  </Col>
+                  <Col>
+                    <Form.Group>
+                      <Form.Label>Expenses</Form.Label>
+                      <Form.Control type="number" value={expenses} onChange={(e) => setExpenses(e.target.value)} />
+                    </Form.Group>
+                  </Col>
+                  <Col>
+                    <Form.Group>
+                      <Form.Label>Month</Form.Label>
+                      <Form.Control type="number" value={month} onChange={(e) => setMonth(e.target.value)} />
+                    </Form.Group>
+                  </Col>
+                </Row>
+              </Form>
+              <Button variant="primary" onClick={handlePrediction} className="mt-3">
+                Predict Profit
+              </Button>
+              {prediction && <Alert variant="success" className="mt-3">Predicted Profit: {prediction}</Alert>}
+            </Card.Body>
+          </Card>
+        </Tab>
+
+        <Tab eventKey="compliance" title="Compliance Check">
+          <Card className="my-4">
+            <Card.Body>
+              <Card.Title>Compliance Check</Card.Title>
+              <Form.Group>
+                <Form.Label>Enter Company Policies (comma-separated)</Form.Label>
+                <Form.Control type="text" value={policies} onChange={(e) => setPolicies(e.target.value)} />
+              </Form.Group>
+              <Button variant="primary" onClick={handleCheckCompliance} className="mt-3">
+                Check Compliance
+              </Button>
+              {complianceStatus && <Alert variant="info" className="mt-3">Compliance Status: {complianceStatus}</Alert>}
+            </Card.Body>
+          </Card>
+        </Tab>
+
+        <Tab eventKey="workflowOptimization" title="Workflow Optimization">
+          <Card className="my-4">
+            <Card.Body>
+              <Card.Title>Workflow Optimization Suggestions</Card.Title>
+              <Button variant="primary" onClick={handleWorkflowOptimization} className="mt-3">
+                Get Workflow Suggestions
+              </Button>
+              {workflowSuggestion && <Alert variant="warning" className="mt-3">{workflowSuggestion}</Alert>}
+            </Card.Body>
+          </Card>
+        </Tab>
+      </Tabs>
+    </Container>
+  );
+}
+
+export default App;
